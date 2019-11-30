@@ -2,19 +2,24 @@ package es.iessaladillo.pedrojoya.pr04.ui.main
 
 import android.app.Application
 import android.content.Intent
+import android.widget.ListAdapter
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
+import androidx.recyclerview.widget.RecyclerView
 import es.iessaladillo.pedrojoya.pr04.R
 import es.iessaladillo.pedrojoya.pr04.base.Event
+import es.iessaladillo.pedrojoya.pr04.data.LocalRepository
 import es.iessaladillo.pedrojoya.pr04.data.Repository
 import es.iessaladillo.pedrojoya.pr04.data.entity.Task
+import java.text.SimpleDateFormat
+import java.util.*
 
 class TasksActivityViewModel(private val repository: Repository,
                              private val application: Application) : ViewModel() {
 
     // Estado de la interfaz
-
     private val _tasks: MutableLiveData<List<Task>> = MutableLiveData()
     val tasks: LiveData<List<Task>>
         get() = _tasks
@@ -38,7 +43,6 @@ class TasksActivityViewModel(private val repository: Repository,
         get() = _lblEmptyViewText
 
     // Eventos de comunicación con la actividad
-
     private val _onStartActivity: MutableLiveData<Event<Intent>> = MutableLiveData()
     val onStartActivity: LiveData<Event<Intent>>
         get() = _onStartActivity
@@ -50,6 +54,10 @@ class TasksActivityViewModel(private val repository: Repository,
     private val _onShowTaskDeleted: MutableLiveData<Event<Task>> = MutableLiveData()
     val onShowTaskDeleted: LiveData<Event<Task>>
         get() = _onShowTaskDeleted
+
+    init {
+        _tasks.value = repository.queryAllTasks()
+    }
 
     // ACTION METHODS
 
@@ -74,16 +82,22 @@ class TasksActivityViewModel(private val repository: Repository,
     // las completadas.
     fun addTask(concept: String) {
         // TODO
+        if(isValidConcept(concept)) {
+            repository.addTask(concept)
+            _tasks.value  = repository.queryAllTasks()
+        }
     }
 
     // Agrega la tarea
     fun insertTask(task: Task) {
-        // TODO
+        repository.insertTask(task)
+        _tasks.value = repository.queryAllTasks()
     }
 
     // Borra la tarea
     fun deleteTask(task: Task) {
-        // TODO
+        repository.deleteTask(task.id)
+        _tasks.value = repository.queryAllTasks()
     }
 
     // Borra todas las tareas mostradas actualmente en el RecyclerView.
@@ -126,12 +140,40 @@ class TasksActivityViewModel(private val repository: Repository,
 
     // Retorna si el concepto recibido es válido (no es una cadena vacía o en blanco)
     fun isValidConcept(concept: String): Boolean {
-        // TODO
+        return concept.trim().isNotEmpty()
     }
 
     // Pide las tareas al repositorio, atendiendo al filtro recibido
     private fun queryTasks(filter: TasksActivityFilter) {
         // TODO
+    }
+
+
+    // Marca como completada una tarea.
+    fun markTaskAsCompleted(task: Task) {
+        val dateFormat = SimpleDateFormat("yyyy/MM/dd HH:mm:ss")
+        val date = Date()
+
+        for(i in 0..repository.queryAllTasks().size) {
+            if (repository.queryAllTasks()[i].id == task.id) {
+                repository.queryAllTasks()[i].completed = true
+                repository.queryAllTasks()[i].completedAt = dateFormat.format(date)
+            }
+        }
+
+        _tasks.value = repository.queryAllTasks()
+    }
+
+    // Marca como pendiente una tarea.
+    fun markTaskAsPending(task: Task) {
+        for(i in 0..repository.queryAllTasks().size) {
+            if (repository.queryAllTasks()[i].id == task.id) {
+                repository.queryAllTasks()[i].completed = false
+                repository.queryAllTasks()[i].completedAt = ""
+            }
+        }
+
+        _tasks.value = repository.queryAllTasks()
     }
 
 }

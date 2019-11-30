@@ -14,7 +14,8 @@
         android:fullBackupContent="@xml/backup_descriptor">
         <activity
             android:name=".ui.main.TasksActivity"
-            android:windowSoftInputMode="stateHidden">
+            android:windowSoftInputMode="stateHidden"
+            android:screenOrientation="fullSensor">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

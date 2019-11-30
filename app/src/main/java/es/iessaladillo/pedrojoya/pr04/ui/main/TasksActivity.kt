@@ -1,9 +1,9 @@
 package es.iessaladillo.pedrojoya.pr04.ui.main
 
-import android.content.ActivityNotFoundException
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import androidx.activity.viewModels
 import androidx.annotation.MenuRes
 import androidx.appcompat.app.AppCompatActivity
@@ -12,20 +12,36 @@ import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.snackbar.Snackbar
 import es.iessaladillo.pedrojoya.pr04.R
-import es.iessaladillo.pedrojoya.pr04.base.observeEvent
 import es.iessaladillo.pedrojoya.pr04.data.LocalRepository
+import es.iessaladillo.pedrojoya.pr04.data.Repository
 import es.iessaladillo.pedrojoya.pr04.data.entity.Task
-import es.iessaladillo.pedrojoya.pr04.utils.hideKeyboard
 import es.iessaladillo.pedrojoya.pr04.utils.invisibleUnless
-import es.iessaladillo.pedrojoya.pr04.utils.setOnSwipeListener
 import kotlinx.android.synthetic.main.tasks_activity.*
+import androidx.core.graphics.drawable.DrawableCompat.clearColorFilter
+import android.view.MotionEvent
+import android.graphics.PorterDuff
+import android.view.View.OnTouchListener
+import android.widget.CheckBox
+//import android.R
+import android.widget.ImageView
+import androidx.core.view.isEmpty
+import es.iessaladillo.pedrojoya.pr04.utils.hideKeyboard
+import es.iessaladillo.pedrojoya.pr04.utils.setOnSwipeListener
+import es.iessaladillo.pedrojoya.pr04.utils.strikeThrough
+import kotlinx.android.synthetic.main.tasks_activity_item.*
+import java.text.FieldPosition
 
 
 class TasksActivity : AppCompatActivity() {
 
     private var mnuFilter: MenuItem? = null
+    private val viewModel: TasksActivityViewModel by viewModels {
+        TasksActivityViewModelFactory(LocalRepository, application)
+    }
+    private val listAdapter : TasksActivityAdapter = TasksActivityAdapter().also {
+        it.onCheckListener = { observeTasks() }
+    }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.main_activity, menu)
@@ -47,9 +63,10 @@ class TasksActivity : AppCompatActivity() {
         return true
     }
 
-    private fun checkMenuItem(@MenuRes menuItemId: Int) {
+   private fun checkMenuItem(@MenuRes menuItemId: Int) {
         lstTasks.post {
-            val item = mnuFilter.findItem(menuItemId)
+            val item = mnuFilter?.subMenu?.findItem(menuItemId)
+
             item?.let { menuItem ->
                 menuItem.isChecked = true
             }
@@ -61,6 +78,76 @@ class TasksActivity : AppCompatActivity() {
             listAdapter.submitList(tasks)
             lblEmptyView.invisibleUnless(tasks.isEmpty())
         }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.tasks_activity)
+        setupViews()
+    }
+
+    private fun updateList(newList: List<Task>) {
+        listAdapter.submitList(newList)
+        lblEmptyView.visibility = if (newList.isEmpty()) View.VISIBLE else View.INVISIBLE
+    }
+    private fun setupViews() {
+        setupRecyclerView()
+        observeTasks()
+        addTask()
+        checkTask()
+    }
+    private fun setupRecyclerView() {
+        lstTasks.run {
+            setHasFixedSize(true)
+            adapter = listAdapter
+            layoutManager = LinearLayoutManager(context)
+            addItemDecoration(DividerItemDecoration(context, RecyclerView.VERTICAL))
+            itemAnimator = DefaultItemAnimator()
+
+            setOnSwipeListener{viewHolder, _ ->
+            viewModel.deleteTask(listAdapter.currentList(viewHolder.adapterPosition))}
+        }
+    }
+    private fun observeTasks() {
+        viewModel.tasks.observe(this) {
+            updateList(it)
+        }
+    }
+
+    private fun checkTask() {
+        chkCompleted?.setOnClickListener{
+
+        }
+    }
+
+    private fun addTask() {
+        imgAddTask.setOnClickListener {
+            viewModel.addTask(txtConcept.text.toString())
+            txtConcept.setText("")
+        }
+
+
+        imgAddTask.setOnTouchListener { v, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    val view = v as ImageView
+                    // Overlay is black with transparency of 0x77 (119)
+                    view.drawable.setColorFilter(0x77000000, PorterDuff.Mode.SRC_ATOP)
+                    view.invalidate()
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    val view = v as ImageView
+                    // Clear the overlay
+                    view.drawable.clearColorFilter()
+                    view.invalidate()
+                }
+
+            }
+
+            false
+        }
+
+        txtConcept.hideKeyboard()
     }
 
 }
