@@ -1,5 +1,6 @@
 package es.iessaladillo.pedrojoya.pr04.data
 
+import android.widget.CheckBox
 import es.iessaladillo.pedrojoya.pr04.data.entity.Task
 import java.text.SimpleDateFormat
 import java.util.*
@@ -10,7 +11,6 @@ import java.util.*
 //  se van agregando tareas (add).
 
 object LocalRepository : Repository {
-
     private var countId: Long = 0
     private val tasks: MutableList<Task> = mutableListOf()
 
@@ -18,9 +18,10 @@ object LocalRepository : Repository {
 
     override fun queryCompletedTasks(): List<Task> {
         val tasksCompleted: MutableList<Task> = mutableListOf()
-        for(i in 0..tasks.size) {
+        for(i in 0 until tasks.size) {
             if (tasks[i].completed) {
                 tasksCompleted.add(tasks[i])
+                println(tasks[i].completed)
             }
         }
 
@@ -29,7 +30,8 @@ object LocalRepository : Repository {
 
     override fun queryPendingTasks(): List<Task> {
         val tasksPending: MutableList<Task> = mutableListOf()
-        for(i in 0..tasks.size) {
+
+        for(i in 0 until tasks.size) {
             if (!tasks[i].completed) {
                 tasksPending.add(tasks[i])
             }
@@ -50,17 +52,15 @@ object LocalRepository : Repository {
     }
 
     override fun deleteTask(taskId: Long) {
-
         for(i in 0..tasks.size) {
             if (tasks[i].id == taskId) {
                 tasks.removeAt(i)
                 break
             }
         }
-
     }
 
-    override fun deleteTasks(taskIdList: List<Long>) {
+    override fun deleteTasks() {
         while (tasks.isNotEmpty()) {
             tasks.removeAt(0)
         }
@@ -73,23 +73,30 @@ object LocalRepository : Repository {
                 break
             }
         }
+
     }
 
-    override fun markTasksAsCompleted(taskIdList: List<Long>) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun markTasksAsCompleted() {
+        for(i in 0 until tasks.size) {
+            tasks[i].completed = true
+        }
     }
 
     override fun markTaskAsPending(taskId: Long) {
-        for(i in 0..tasks.size) {
+        for(i in 0 until tasks.size) {
             if (tasks[i].id == taskId) {
                 tasks[i].completed = false
+                tasks[i].completedAt = ""
                 break
             }
         }
     }
 
-    override fun markTasksAsPending(taskIdList: List<Long>) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun markTasksAsPending() {
+        for(i in 0 until tasks.size) {
+            tasks[i].completed = false
+            tasks[i].completedAt = ""
+        }
     }
 }
 

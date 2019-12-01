@@ -14,23 +14,16 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import es.iessaladillo.pedrojoya.pr04.R
 import es.iessaladillo.pedrojoya.pr04.data.LocalRepository
-import es.iessaladillo.pedrojoya.pr04.data.Repository
 import es.iessaladillo.pedrojoya.pr04.data.entity.Task
 import es.iessaladillo.pedrojoya.pr04.utils.invisibleUnless
 import kotlinx.android.synthetic.main.tasks_activity.*
-import androidx.core.graphics.drawable.DrawableCompat.clearColorFilter
 import android.view.MotionEvent
 import android.graphics.PorterDuff
-import android.view.View.OnTouchListener
-import android.widget.CheckBox
 //import android.R
 import android.widget.ImageView
-import androidx.core.view.isEmpty
 import es.iessaladillo.pedrojoya.pr04.utils.hideKeyboard
 import es.iessaladillo.pedrojoya.pr04.utils.setOnSwipeListener
-import es.iessaladillo.pedrojoya.pr04.utils.strikeThrough
 import kotlinx.android.synthetic.main.tasks_activity_item.*
-import java.text.FieldPosition
 
 
 class TasksActivity : AppCompatActivity() {
@@ -54,16 +47,18 @@ class TasksActivity : AppCompatActivity() {
             R.id.mnuShare -> viewModel.shareTasks()
             R.id.mnuDelete -> viewModel.deleteTasks()
             R.id.mnuComplete -> viewModel.markTasksAsCompleted()
-            R.id.mnuPending -> viewModel.markTasksAsPending()
+            R.id.mnuPending -> viewModel.markTasksAsPending(chkCompleted)
             R.id.mnuFilterAll -> viewModel.filterAll()
             R.id.mnuFilterPending -> viewModel.filterPending()
             R.id.mnuFilterCompleted -> viewModel.filterCompleted()
             else -> return super.onOptionsItemSelected(item)
         }
+        observeTasks()
+        checkMenuItem(item.itemId)
         return true
     }
 
-   private fun checkMenuItem(@MenuRes menuItemId: Int) {
+    private fun checkMenuItem(@MenuRes menuItemId: Int) {
         lstTasks.post {
             val item = mnuFilter?.subMenu?.findItem(menuItemId)
 
@@ -87,14 +82,15 @@ class TasksActivity : AppCompatActivity() {
     }
 
     private fun updateList(newList: List<Task>) {
-        listAdapter.submitList(newList)
-        lblEmptyView.visibility = if (newList.isEmpty()) View.VISIBLE else View.INVISIBLE
+        lstTasks.post {
+            listAdapter.submitList(newList)
+            lblEmptyView.visibility = if (newList.isEmpty()) View.VISIBLE else View.INVISIBLE
+        }
     }
     private fun setupViews() {
         setupRecyclerView()
         observeTasks()
         addTask()
-        checkTask()
     }
     private fun setupRecyclerView() {
         lstTasks.run {
@@ -111,12 +107,6 @@ class TasksActivity : AppCompatActivity() {
     private fun observeTasks() {
         viewModel.tasks.observe(this) {
             updateList(it)
-        }
-    }
-
-    private fun checkTask() {
-        chkCompleted?.setOnClickListener{
-
         }
     }
 

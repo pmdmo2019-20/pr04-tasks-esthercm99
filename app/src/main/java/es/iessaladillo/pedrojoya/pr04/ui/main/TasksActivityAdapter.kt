@@ -54,22 +54,21 @@ class TasksActivityAdapter() : RecyclerView.Adapter<TasksActivityAdapter.ViewHol
     }
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val lblConcept: TextView = itemView.findViewById(R.id.lblConcept)
-        val lblCompleted: TextView = itemView.findViewById(R.id.lblCompleted)
-        val chkCompleted: CheckBox = itemView.findViewById(R.id.chkCompleted)
-        val viewBar: View = itemView.findViewById(R.id.viewBar)
-        var newView = true
+        private val lblConcept: TextView = itemView.findViewById(R.id.lblConcept)
+        private val lblCompleted: TextView = itemView.findViewById(R.id.lblCompleted)
+        private val chkCompleted: CheckBox = itemView.findViewById(R.id.chkCompleted)
+        private val viewBar: View = itemView.findViewById(R.id.viewBar)
 
         init {
             chkCompleted.setOnClickListener {
                 onCheckListener?.invoke(adapterPosition)
             }
-
         }
 
-        fun completed(task: Task) {
+        private fun completed(task: Task) {
             task.run {
                 completed = true
+                chkCompleted.isChecked = completed
 
                 // Si la cadena viene vacía se le da la fecha en la que se ha chequeado:
                 if (completedAt.trim().isEmpty()) {
@@ -83,11 +82,18 @@ class TasksActivityAdapter() : RecyclerView.Adapter<TasksActivityAdapter.ViewHol
 
             }
         }
-
-        fun pending(task: Task) {
+        private fun pending(task: Task) {
             task.run {
                 completed = false
                 completedAt = ""
+                chkCompleted.isChecked = completed
+                lblConcept.strikeThrough(false)
+                lblCompleted.text = String.format("Created at %s", createdAt)
+                viewBar.setBackgroundResource(R.color.colorPendingTask)
+            }
+        }
+        private fun initial(task: Task) {
+            task.run {
                 lblConcept.strikeThrough(false)
                 lblCompleted.text = String.format("Created at %s", createdAt)
                 viewBar.setBackgroundResource(R.color.colorPendingTask)
@@ -98,16 +104,22 @@ class TasksActivityAdapter() : RecyclerView.Adapter<TasksActivityAdapter.ViewHol
             task.run {
                 lblConcept.text = concept
 
-                // Solo para cuando se gire la pantalla se vuelva a chequear:
-                if (completed && newView) {
-                    completed(task)
-                    chkCompleted.isChecked = true
-                    newView = false
+                // Cuando se añade una nueva tarea:
+                initial(task)
+
+                // Cuando se hace click sobre el checkbox:
+                chkCompleted.setOnClickListener {
+                    if(!chkCompleted.isChecked) {
+                        pending(task)
+                    } else if(chkCompleted.isChecked) {
+                        completed(task)
+                    }
                 }
 
-                if(!chkCompleted.isChecked) {
+                // Cuando no se hace click en los checkbox:
+                if(!task.completed) {
                     pending(task)
-                } else if(chkCompleted.isChecked) {
+                } else {
                     completed(task)
                 }
 
