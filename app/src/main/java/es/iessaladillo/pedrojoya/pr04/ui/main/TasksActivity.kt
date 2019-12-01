@@ -21,9 +21,9 @@ import android.view.MotionEvent
 import android.graphics.PorterDuff
 //import android.R
 import android.widget.ImageView
+import com.google.android.material.snackbar.Snackbar
 import es.iessaladillo.pedrojoya.pr04.utils.hideKeyboard
 import es.iessaladillo.pedrojoya.pr04.utils.setOnSwipeListener
-import kotlinx.android.synthetic.main.tasks_activity_item.*
 
 
 class TasksActivity : AppCompatActivity() {
@@ -45,9 +45,9 @@ class TasksActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.mnuShare -> viewModel.shareTasks()
-            R.id.mnuDelete -> viewModel.deleteTasks()
-            R.id.mnuComplete -> viewModel.markTasksAsCompleted()
-            R.id.mnuPending -> viewModel.markTasksAsPending(chkCompleted)
+            R.id.mnuDelete -> viewModel.deleteTasks(lstTasks)
+            R.id.mnuComplete -> viewModel.markTasksAsCompleted(lstTasks)
+            R.id.mnuPending -> viewModel.markTasksAsPending(lstTasks)
             R.id.mnuFilterAll -> viewModel.filterAll()
             R.id.mnuFilterPending -> viewModel.filterPending()
             R.id.mnuFilterCompleted -> viewModel.filterCompleted()
@@ -87,6 +87,17 @@ class TasksActivity : AppCompatActivity() {
             lblEmptyView.visibility = if (newList.isEmpty()) View.VISIBLE else View.INVISIBLE
         }
     }
+
+    private fun refreshList(newList: List<Task>) {
+        lstTasks.post {
+            listAdapter.submitList(emptyList())
+            listAdapter.submitList(newList)
+
+            lblEmptyView.visibility = View.INVISIBLE
+            lblEmptyView.visibility = View.VISIBLE
+
+        }
+    }
     private fun setupViews() {
         setupRecyclerView()
         observeTasks()
@@ -96,13 +107,28 @@ class TasksActivity : AppCompatActivity() {
         lstTasks.run {
             setHasFixedSize(true)
             adapter = listAdapter
-            layoutManager = LinearLayoutManager(context)
-            addItemDecoration(DividerItemDecoration(context, RecyclerView.VERTICAL))
+            layoutManager = LinearLayoutManager(this@TasksActivity)
+            addItemDecoration(DividerItemDecoration(this@TasksActivity, RecyclerView.VERTICAL))
             itemAnimator = DefaultItemAnimator()
 
-            setOnSwipeListener{viewHolder, _ ->
-            viewModel.deleteTask(listAdapter.currentList(viewHolder.adapterPosition))}
+            setOnSwipeListener{ viewHolder, _ ->
+                val task: Task = listAdapter.currentList(viewHolder.adapterPosition)
+
+                viewModel.deleteTask(task)
+
+                val snackbar = Snackbar.make(
+                    lstTasks,
+                    getString(R.string.tasks_task_deleted, task.concept),
+                    Snackbar.LENGTH_LONG)
+                snackbar.setAction(R.string.tasks_recreate) {
+                    viewModel.insertTask(task)
+                }
+                snackbar.show()
+
+                observeTasks()
+            }
         }
+
     }
     private fun observeTasks() {
         viewModel.tasks.observe(this) {
@@ -115,7 +141,6 @@ class TasksActivity : AppCompatActivity() {
             viewModel.addTask(txtConcept.text.toString())
             txtConcept.setText("")
         }
-
 
         imgAddTask.setOnTouchListener { v, event ->
             when (event.action) {
@@ -131,13 +156,13 @@ class TasksActivity : AppCompatActivity() {
                     view.drawable.clearColorFilter()
                     view.invalidate()
                 }
-
             }
+
+            // Se cierra el teclado al añadir la tarea:
+            v.hideKeyboard()
 
             false
         }
-
-        txtConcept.hideKeyboard()
     }
 
 }

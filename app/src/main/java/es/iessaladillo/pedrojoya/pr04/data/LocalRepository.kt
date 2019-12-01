@@ -48,22 +48,34 @@ object LocalRepository : Repository {
     }
 
     override fun insertTask(task: Task) {
+        task.id = countId
+        countId++
         tasks.add(task)
     }
 
     override fun deleteTask(taskId: Long) {
-        for(i in 0..tasks.size) {
+        for(i in 0 until tasks.size) {
             if (tasks[i].id == taskId) {
                 tasks.removeAt(i)
+                //countId--
+
                 break
             }
         }
+
+        /*if( tasks.size != 0) {
+            for(i in 0 until tasks.size) {
+                tasks[i].id = i.toLong()
+            }
+        }*/
+
     }
 
     override fun deleteTasks() {
         while (tasks.isNotEmpty()) {
             tasks.removeAt(0)
         }
+        //countId = 0
     }
 
     override fun markTaskAsCompleted(taskId: Long) {

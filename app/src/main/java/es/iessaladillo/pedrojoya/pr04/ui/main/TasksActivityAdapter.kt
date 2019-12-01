@@ -124,6 +124,7 @@ class TasksActivityAdapter() : RecyclerView.Adapter<TasksActivityAdapter.ViewHol
                 }
 
             }
+
         }
     }
 }

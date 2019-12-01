@@ -2,19 +2,23 @@ package es.iessaladillo.pedrojoya.pr04.ui.main
 
 import android.app.Application
 import android.content.Intent
-import android.widget.CheckBox
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.google.android.material.snackbar.Snackbar
 import es.iessaladillo.pedrojoya.pr04.R
 import es.iessaladillo.pedrojoya.pr04.base.Event
 import es.iessaladillo.pedrojoya.pr04.data.Repository
 import es.iessaladillo.pedrojoya.pr04.data.entity.Task
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.recyclerview.widget.RecyclerView
+
 
 class TasksActivityViewModel(private val repository: Repository,
                              private val application: Application) : ViewModel() {
+
+    var listTask: MutableList<Task> = repository.queryAllTasks().toMutableList()
 
     // Estado de la interfaz
     private val _tasks: MutableLiveData<List<Task>> = MutableLiveData()
@@ -53,7 +57,7 @@ class TasksActivityViewModel(private val repository: Repository,
         get() = _onShowTaskDeleted
 
     init {
-        _tasks.value = repository.queryAllTasks()
+        _tasks.value = listTask
     }
 
     // ACTION METHODS
@@ -61,22 +65,20 @@ class TasksActivityViewModel(private val repository: Repository,
     // Hace que se muestre en el RecyclerView todas las tareas.
     fun filterAll() {
         _tasks.value = repository.queryAllTasks()
-        _currentFilter.value = TasksActivityFilter.ALL
         _currentFilterMenuItemId.value = R.id.mnuFilterAll
+        _currentFilter.value = TasksActivityFilter.ALL
     }
-
     // Hace que se muestre en el RecyclerView sólo las tareas completadas.
     fun filterCompleted() {
         _tasks.value = repository.queryCompletedTasks()
-        _currentFilter.value = TasksActivityFilter.COMPLETED
         _currentFilterMenuItemId.value = R.id.mnuFilterCompleted
+        _currentFilter.value = TasksActivityFilter.COMPLETED
     }
-
     // Hace que se muestre en el RecyclerView sólo las tareas pendientes.
     fun filterPending() {
         _tasks.value = repository.queryPendingTasks()
-        _currentFilter.value = TasksActivityFilter.PENDING
         _currentFilterMenuItemId.value = R.id.mnuFilterPending
+        _currentFilter.value = TasksActivityFilter.PENDING
     }
 
     // Agrega una nueva tarea con dicho concepto. Si la se estaba mostrando
@@ -105,24 +107,36 @@ class TasksActivityViewModel(private val repository: Repository,
     // Borra todas las tareas mostradas actualmente en el RecyclerView.
     // Si no se estaba mostrando ninguna tarea, se muestra un mensaje
     // informativo en un SnackBar de que no hay tareas que borrar.
-    fun deleteTasks() {
-        repository.deleteTasks()
+    fun deleteTasks(lstTasks: RecyclerView) {
+        if (repository.queryAllTasks().isEmpty()) {
+            Snackbar.make(lstTasks, R.string.tasks_no_tasks_to_delete, Snackbar.LENGTH_LONG).show()
+        } else {
+            repository.deleteTasks()
+        }
     }
 
     // Marca como completadas todas las tareas mostradas actualmente en el RecyclerView,
     // incluso si ya estaban completadas.
     // Si no se estaba mostrando ninguna tarea, se muestra un mensaje
     // informativo en un SnackBar de que no hay tareas que marcar como completadas.
-    fun markTasksAsCompleted() {
-        repository.markTasksAsCompleted()
+    fun markTasksAsCompleted(lstTasks: RecyclerView) {
+        if (repository.queryAllTasks().isEmpty()) {
+            Snackbar.make(lstTasks, R.string.tasks_no_tasks_to_mark_as_completed, Snackbar.LENGTH_LONG).show()
+        } else {
+            repository.markTasksAsCompleted()
+        }
     }
 
     // Marca como pendientes todas las tareas mostradas actualmente en el RecyclerView,
     // incluso si ya estaban pendientes.
     // Si no se estaba mostrando ninguna tarea, se muestra un mensaje
     // informativo en un SnackBar de que no hay tareas que marcar como pendientes.
-    fun markTasksAsPending(chkCompleted: CheckBox) {
-        repository.markTasksAsPending()
+    fun markTasksAsPending(lstTasks: RecyclerView) {
+        if (repository.queryAllTasks().isEmpty()) {
+            Snackbar.make(lstTasks, R.string.tasks_no_tasks_to_mark_as_pending, Snackbar.LENGTH_LONG).show()
+        } else {
+            repository.markTasksAsPending()
+        }
     }
 
     // Hace que se envíe un Intent con la lista de tareas mostradas actualmente
@@ -130,8 +144,22 @@ class TasksActivityViewModel(private val repository: Repository,
     // Si no se estaba mostrando ninguna tarea, se muestra un Snackbar indicando
     // que no hay tareas que compartir.
     fun shareTasks() {
-        // TODO
+        /*val sendIntent: Intent = Intent().apply {
+            action = Intent.ACTION_SEND
+            putExtra(Intent.EXTRA_TEXT, "This is my text to send.")
+            type = "text/plain"
+        }
+
+        // Fallo de flags:
+        startActivity(application.applicationContext, Intent.createChooser(sendIntent, null), null)*/
     }
+
+    // Retorna si el concepto recibido es válido (no es una cadena vacía o en blanco)
+    private fun isValidConcept(concept: String): Boolean {
+        return concept.trim().isNotEmpty()
+    }
+
+    // ---------- FUNCIONES QUE NO USO ----------
 
     // Actualiza el estado de completitud de la tarea recibida, atendiendo al
     // valor de isCompleted. Si es true la tarea es marcada como completada y
@@ -139,18 +167,17 @@ class TasksActivityViewModel(private val repository: Repository,
     fun updateTaskCompletedState(task: Task, isCompleted: Boolean) {
         // TODO
     }
-
-    // Retorna si el concepto recibido es válido (no es una cadena vacía o en blanco)
-    fun isValidConcept(concept: String): Boolean {
-        return concept.trim().isNotEmpty()
-    }
-
     // Pide las tareas al repositorio, atendiendo al filtro recibido
     private fun queryTasks(filter: TasksActivityFilter) {
-        repository.queryAllTasks()
     }
 
-
+    fun submitTasks(newList: List<Task>) {
+        _tasks.value = newList.sortedByDescending { it.id }
+        listTask.clear()
+        tasks.value?.forEach {
+            listTask.add(it)
+        }
+    }
     // Marca como completada una tarea.
     fun markTaskAsCompleted(task: Task) {
         val dateFormat = SimpleDateFormat("yyyy/MM/dd HH:mm:ss")
@@ -165,7 +192,6 @@ class TasksActivityViewModel(private val repository: Repository,
 
         _tasks.value = repository.queryAllTasks()
     }
-
     // Marca como pendiente una tarea.
     fun markTaskAsPending(task: Task) {
         for(i in 0..repository.queryAllTasks().size) {
