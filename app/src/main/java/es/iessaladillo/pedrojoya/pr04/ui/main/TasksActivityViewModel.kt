@@ -88,20 +88,20 @@ class TasksActivityViewModel(private val repository: Repository,
     fun addTask(concept: String) {
         if(isValidConcept(concept)) {
             repository.addTask(concept)
-            _tasks.value  = repository.queryAllTasks()
+            queryTasks( _currentFilter.value)
         }
     }
 
     // Agrega la tarea
     fun insertTask(task: Task) {
         repository.insertTask(task)
-        _tasks.value = repository.queryAllTasks()
+        queryTasks( _currentFilter.value)
     }
 
     // Borra la tarea
     fun deleteTask(task: Task) {
         repository.deleteTask(task.id)
-        _tasks.value = repository.queryAllTasks()
+        queryTasks( _currentFilter.value)
     }
 
     // Borra todas las tareas mostradas actualmente en el RecyclerView.
@@ -159,6 +159,17 @@ class TasksActivityViewModel(private val repository: Repository,
         return concept.trim().isNotEmpty()
     }
 
+    // Pide las tareas al repositorio, atendiendo al filtro recibido
+    private fun queryTasks(filter: TasksActivityFilter?) {
+        if(filter == TasksActivityFilter.ALL) {
+            _tasks.value = repository.queryAllTasks()
+        } else if (filter == TasksActivityFilter.COMPLETED) {
+            _tasks.value = repository.queryCompletedTasks()
+        } else if (filter == TasksActivityFilter.PENDING) {
+            _tasks.value = repository.queryPendingTasks()
+        }
+    }
+/*
     // ---------- FUNCIONES QUE NO USO ----------
 
     // Actualiza el estado de completitud de la tarea recibida, atendiendo al
@@ -167,10 +178,6 @@ class TasksActivityViewModel(private val repository: Repository,
     fun updateTaskCompletedState(task: Task, isCompleted: Boolean) {
         // TODO
     }
-    // Pide las tareas al repositorio, atendiendo al filtro recibido
-    private fun queryTasks(filter: TasksActivityFilter) {
-    }
-
     fun submitTasks(newList: List<Task>) {
         _tasks.value = newList.sortedByDescending { it.id }
         listTask.clear()
@@ -203,6 +210,6 @@ class TasksActivityViewModel(private val repository: Repository,
 
         _tasks.value = repository.queryAllTasks()
     }
-
+*/
 }
 

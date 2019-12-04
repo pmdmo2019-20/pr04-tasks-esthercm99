@@ -27,7 +27,6 @@ object LocalRepository : Repository {
 
         return tasksCompleted
     }
-
     override fun queryPendingTasks(): List<Task> {
         val tasksPending: MutableList<Task> = mutableListOf()
 
@@ -46,7 +45,6 @@ object LocalRepository : Repository {
         insertTask(Task(countId, concept, dateFormat.format(date)))
         countId++
     }
-
     override fun insertTask(task: Task) {
         task.id = countId
         countId++
@@ -57,25 +55,14 @@ object LocalRepository : Repository {
         for(i in 0 until tasks.size) {
             if (tasks[i].id == taskId) {
                 tasks.removeAt(i)
-                //countId--
-
                 break
             }
         }
-
-        /*if( tasks.size != 0) {
-            for(i in 0 until tasks.size) {
-                tasks[i].id = i.toLong()
-            }
-        }*/
-
     }
-
     override fun deleteTasks() {
         while (tasks.isNotEmpty()) {
             tasks.removeAt(0)
         }
-        //countId = 0
     }
 
     override fun markTaskAsCompleted(taskId: Long) {
@@ -85,9 +72,7 @@ object LocalRepository : Repository {
                 break
             }
         }
-
     }
-
     override fun markTasksAsCompleted() {
         for(i in 0 until tasks.size) {
             tasks[i].completed = true
@@ -103,7 +88,6 @@ object LocalRepository : Repository {
             }
         }
     }
-
     override fun markTasksAsPending() {
         for(i in 0 until tasks.size) {
             tasks[i].completed = false

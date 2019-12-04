@@ -27,9 +27,6 @@ class TasksActivityAdapter() : RecyclerView.Adapter<TasksActivityAdapter.ViewHol
     private var data: List<Task> = emptyList()
     var onCheckListener: ((Int) -> Unit)? = null
 
-    init {
-        setHasStableIds(true)
-    }
 
     fun currentList(position: Int): Task {
         return data[position]
@@ -62,6 +59,31 @@ class TasksActivityAdapter() : RecyclerView.Adapter<TasksActivityAdapter.ViewHol
         init {
             chkCompleted.setOnClickListener {
                 onCheckListener?.invoke(adapterPosition)
+            }
+        }
+
+        fun bind(task: Task) {
+            task.run {
+                lblConcept.text = concept
+
+                // Cuando se añade una nueva tarea:
+                initial(task)
+
+                // Cuando se hace click sobre el checkbox:
+                chkCompleted.setOnClickListener {
+                    if(!chkCompleted.isChecked) {
+                        pending(task)
+                    } else if(chkCompleted.isChecked) {
+                        completed(task)
+                    }
+                }
+
+                // Cuando no se hace click en los checkbox:
+                if(!task.completed) {
+                    pending(task)
+                } else {
+                    completed(task)
+                }
             }
         }
 
@@ -100,32 +122,6 @@ class TasksActivityAdapter() : RecyclerView.Adapter<TasksActivityAdapter.ViewHol
             }
         }
 
-        fun bind(task: Task) {
-            task.run {
-                lblConcept.text = concept
-
-                // Cuando se añade una nueva tarea:
-                initial(task)
-
-                // Cuando se hace click sobre el checkbox:
-                chkCompleted.setOnClickListener {
-                    if(!chkCompleted.isChecked) {
-                        pending(task)
-                    } else if(chkCompleted.isChecked) {
-                        completed(task)
-                    }
-                }
-
-                // Cuando no se hace click en los checkbox:
-                if(!task.completed) {
-                    pending(task)
-                } else {
-                    completed(task)
-                }
-
-            }
-
-        }
     }
 }
 

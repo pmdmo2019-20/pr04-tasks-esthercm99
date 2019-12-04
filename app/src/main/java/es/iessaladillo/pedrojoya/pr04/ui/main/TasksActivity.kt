@@ -25,7 +25,6 @@ import com.google.android.material.snackbar.Snackbar
 import es.iessaladillo.pedrojoya.pr04.utils.hideKeyboard
 import es.iessaladillo.pedrojoya.pr04.utils.setOnSwipeListener
 
-
 class TasksActivity : AppCompatActivity() {
 
     private var mnuFilter: MenuItem? = null
@@ -68,12 +67,12 @@ class TasksActivity : AppCompatActivity() {
         }
     }
 
-    private fun showTasks(tasks: List<Task>) {
+    /*private fun showTasks(tasks: List<Task>) {
         lstTasks.post {
             listAdapter.submitList(tasks)
             lblEmptyView.invisibleUnless(tasks.isEmpty())
         }
-    }
+    }*/
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -88,7 +87,7 @@ class TasksActivity : AppCompatActivity() {
         }
     }
 
-    private fun refreshList(newList: List<Task>) {
+    /*private fun refreshList(newList: List<Task>) {
         lstTasks.post {
             listAdapter.submitList(emptyList())
             listAdapter.submitList(newList)
@@ -97,7 +96,7 @@ class TasksActivity : AppCompatActivity() {
             lblEmptyView.visibility = View.VISIBLE
 
         }
-    }
+    }*/
     private fun setupViews() {
         setupRecyclerView()
         observeTasks()
@@ -107,13 +106,12 @@ class TasksActivity : AppCompatActivity() {
         lstTasks.run {
             setHasFixedSize(true)
             adapter = listAdapter
-            layoutManager = LinearLayoutManager(this@TasksActivity)
-            addItemDecoration(DividerItemDecoration(this@TasksActivity, RecyclerView.VERTICAL))
+            layoutManager = LinearLayoutManager(context)
+            addItemDecoration(DividerItemDecoration(context, RecyclerView.VERTICAL))
             itemAnimator = DefaultItemAnimator()
 
-            setOnSwipeListener{ viewHolder, _ ->
+            setOnSwipeListener { viewHolder, _ ->
                 val task: Task = listAdapter.currentList(viewHolder.adapterPosition)
-
                 viewModel.deleteTask(task)
 
                 val snackbar = Snackbar.make(
@@ -124,18 +122,15 @@ class TasksActivity : AppCompatActivity() {
                     viewModel.insertTask(task)
                 }
                 snackbar.show()
-
-                observeTasks()
             }
         }
-
+        observeTasks()
     }
     private fun observeTasks() {
         viewModel.tasks.observe(this) {
             updateList(it)
         }
     }
-
     private fun addTask() {
         imgAddTask.setOnClickListener {
             viewModel.addTask(txtConcept.text.toString())
