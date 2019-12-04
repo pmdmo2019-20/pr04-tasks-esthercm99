@@ -13,6 +13,16 @@ import es.iessaladillo.pedrojoya.pr04.data.entity.Task
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.recyclerview.widget.RecyclerView
+import android.os.Bundle
+import android.content.pm.ApplicationInfo
+import android.content.pm.ResolveInfo
+import android.content.pm.PackageManager
+
+
+
+
+
+
 
 
 class TasksActivityViewModel(private val repository: Repository,
@@ -64,21 +74,21 @@ class TasksActivityViewModel(private val repository: Repository,
 
     // Hace que se muestre en el RecyclerView todas las tareas.
     fun filterAll() {
-        _tasks.value = repository.queryAllTasks()
         _currentFilterMenuItemId.value = R.id.mnuFilterAll
-        _currentFilter.value = TasksActivityFilter.ALL
+        _activityTitle.value = application.getString(R.string.tasks_title_all)
+        queryTasks(TasksActivityFilter.ALL)
     }
     // Hace que se muestre en el RecyclerView sólo las tareas completadas.
     fun filterCompleted() {
-        _tasks.value = repository.queryCompletedTasks()
         _currentFilterMenuItemId.value = R.id.mnuFilterCompleted
-        _currentFilter.value = TasksActivityFilter.COMPLETED
+        _activityTitle.value = application.getString(R.string.tasks_title_completed)
+        queryTasks(TasksActivityFilter.COMPLETED)
     }
     // Hace que se muestre en el RecyclerView sólo las tareas pendientes.
     fun filterPending() {
-        _tasks.value = repository.queryPendingTasks()
         _currentFilterMenuItemId.value = R.id.mnuFilterPending
-        _currentFilter.value = TasksActivityFilter.PENDING
+        _activityTitle.value = application.getString(R.string.tasks_title_pending)
+        queryTasks(TasksActivityFilter.PENDING)
     }
 
     // Agrega una nueva tarea con dicho concepto. Si la se estaba mostrando
@@ -144,15 +154,20 @@ class TasksActivityViewModel(private val repository: Repository,
     // Si no se estaba mostrando ninguna tarea, se muestra un Snackbar indicando
     // que no hay tareas que compartir.
     fun shareTasks() {
-        /*val sendIntent: Intent = Intent().apply {
+        /*
+        val myList = repository.queryAllTasks()
+        Intent().putExtra("mylist", myList)
+
+        val sendIntent: Intent = Intent().apply {
             action = Intent.ACTION_SEND
-            putExtra(Intent.EXTRA_TEXT, "This is my text to send.")
+            putExtra(Intent.EXTRA_TEXT, "This is my tasks to send.")
             type = "text/plain"
         }
 
         // Fallo de flags:
         startActivity(application.applicationContext, Intent.createChooser(sendIntent, null), null)*/
     }
+
 
     // Retorna si el concepto recibido es válido (no es una cadena vacía o en blanco)
     private fun isValidConcept(concept: String): Boolean {
