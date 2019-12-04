@@ -94,9 +94,9 @@ class TasksActivity : AppCompatActivity() {
 
             lblEmptyView.visibility = View.INVISIBLE
             lblEmptyView.visibility = View.VISIBLE
-
         }
     }*/
+
     private fun setupViews() {
         setupRecyclerView()
         observeTasks()
